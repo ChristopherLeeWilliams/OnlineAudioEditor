@@ -1,0 +1,28 @@
+{% extends 'bootstrap/base.html' %}
+
+{% block title %}
+  Index
+{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <title>Upload new File</title>
+    <h1>Upload new File</h1>
+    <form method="post" enctype="multipart/form-data">
+      <p><input type="file" id="file" name="file">
+         <input type="submit" value="Upload">
+    </form>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+
+  <script>
+    $(function(){
+      $("#file").change(function(){
+        alert("You changed the file!")
+      });
+    });
+  </script>
+{% endblock %}
