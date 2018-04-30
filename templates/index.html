@@ -6,12 +6,12 @@
 
 {% block content %}
   <div class="container">
-    <title>Upload new File</title>
-    <h1>Upload new File</h1>
-    <form method="post" enctype="multipart/form-data">
-      <p><input type="file" id="file" name="file">
-         <input type="submit" value="Upload">
-    </form>
+    <title>Upload</title>
+    <h1>Upload Audio File</h1>
+    <p><input type="file" id="file" name="file">
+    <audio id="audio-player" style="display:none" controls></audio>
+
+    <input type="button" id="submit-btn" value="Submit">
   </div>
 {% endblock %}
 
@@ -21,8 +21,42 @@
   <script>
     $(function(){
       $("#file").change(function(){
-        alert("You changed the file!")
+        var fileReader = new FileReader();
+        fileReader.onload = function () {
+          var AData = fileReader.result;  // base 64 audio data
+          $('#audio-player').attr('src', AData);
+          $('#audio-player').show();
+        };
+        fileReader.readAsDataURL($('#file').prop('files')[0]);
       });
+
+      $('#submit-btn').click(function() {
+        src = $('#audio-player').attr('src');
+        if (typeof src != 'undefined') {
+          ajax('/test',src);
+        } else {
+          console.log("Source not defined");
+        }
+      });
+
+      function ajax(url, dataToSend) {
+        $.ajax({
+                url: url,
+                method: 'POST',
+                contentType: 'application/json',
+                dataType : 'json',
+                data: JSON.stringify({"data":dataToSend})
+            })
+            .done(function(response) {
+                console.log(response)
+            })
+            .fail(function(err) {
+                console.log(err);
+            })
+            .always(function() {
+                // console.log( "Completed" );
+            });
+      }
     });
   </script>
 {% endblock %}
