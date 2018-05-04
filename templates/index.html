@@ -9,68 +9,101 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
   <div class="container">
-    <title>Upload</title>
-    <h1>Upload Audio File</h1>
-    <p><input type="file" id="file" name="file">
-    <audio id="audio-player" style="display:none" controls></audio>
-    <div id="loader" style="display:none">
-      <i class="fa fa-refresh fa-spin" style="font-size:24px"></i>
-    </div>
-
+    <h1>Upload Audio File</h1></br>
+    <input type="file" id="file" name="file"></br>
+    <div class="audio-container"></div>
     <input type="button" id="submit-btn" value="Submit">
   </div>
+
 {% endblock %}
 
 {% block scripts %}
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-
   <script>
     $(function(){
+
+      // EVENT - when file input changes:
       $("#file").change(function(){
-        var fileReader = new FileReader();
-        fileReader.onload = function () {
-          var AData = fileReader.result;  // base 64 audio data
-          $('#audio-player').attr('src', AData);
-          $('#audio-player').show();
-        };
-        fileReader.readAsDataURL($('#file').prop('files')[0]);
+        create_audio_player();
       });
 
+      // EVENT - when submit button is clicked
       $('#submit-btn').click(function() {
         src = $('#audio-player').attr('src');
-        if (typeof src != 'undefined') {
-          ajax('/test',src);
+        if (typeof src === 'undefined') {
+          alert("Audio source not selected");
         } else {
-          console.log("Source not defined");
+          ajax();
         }
-      });
 
-      function ajax(url, dataToSend) {
-        $('#audio-player').attr('src', "");
-        $('#audio-player').hide();
-        $('#submit-btn').hide();
-        $('#loader').show();
-        $.ajax({
-                url: url,
-                method: 'POST',
-                contentType: 'application/json',
-                dataType : 'json',
-                data: JSON.stringify({"data":dataToSend})
-            })
-            .done(function(response) {
-                console.log(response)
-                $('#loader').hide()
-                $('#audio-player').attr('src', response);
-                $('#audio-player').show();
-                $('#submit-btn').show();
-            })
-            .fail(function(err) {
-                console.log(err);
-            })
-            .always(function() {
-                // console.log( "Completed" );
-            });
-      }
+      });
     });
+
+    // FUNCTION - placeholder AJAX call (communicates with server)
+    function ajax() {
+      var audio_data = get_audio_info();
+      remove_audio_player();
+      start_load_icon();
+      $.ajax({
+        url: '/test',
+        method: 'POST',
+        data: JSON.stringify(audio_data),
+        dataType: 'json',
+        contentType: 'application/json; charset=utf-8'
+      })
+      .done(function(response) {
+        stop_load_icon();
+        console.log("data:audio/mp3;base64,"+response)
+        create_audio_player("data:audio/mp3;base64,"+response)
+      })
+      .fail(function(err) { console.log(err); stop_load_icon();})
+      .always(function() {});
+    }
+
+    function create_audio_player(src) {
+      // Generates an audio player with a supplied source
+      //  OR the source found from the input file
+      var audio_player = document.createElement('audio')
+      audio_player.id = 'audio-player';
+      audio_player.controls = 'controls';
+
+      if (typeof src === 'undefined') {
+        var fileReader = new FileReader();
+        fileReader.onload = function () { audio_player.src = fileReader.result; }; // base 64 audio data (with prepended formatting)
+        fileReader.readAsDataURL($('#file').prop('files')[0]);
+      } else {audio_player.src = src;}
+
+      $('.audio-container').append(audio_player);
+    }
+
+
+    function get_audio_info() {
+      // Returns audio info in js object format:
+      // {
+      //   contentType: "type of audio, EX: audio/mp3",
+      //   base64: "base64 ascii encoded audio data"
+      // }
+      var src = $('#audio-player').attr('src');
+      if (typeof src === 'undefined') { return -1; }
+      var base64_split = src.split("base64,");
+      return {
+        contentType: base64_split[0].split("data:")[1].split(";")[0],
+        base64: base64_split[1]
+      };
+    }
+
+    function remove_audio_player() {
+      // Removes existing audio player and file input value
+      $('.audio-container').empty();
+      $('#file').val("");
+    }
+
+    function start_load_icon() {
+      $('.audio-container').append('<i class="fa fa-refresh fa-spin" style="font-size:24px"></i>');
+    }
+
+    function stop_load_icon() {
+      $('.audio-container').empty();
+    }
   </script>
 {% endblock %}
