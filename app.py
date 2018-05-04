@@ -56,6 +56,3 @@ def crop_audio():
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
     return render_template('index.html')
-
-# @app.route('/download' methods=['POST'])
-# def download_file():
