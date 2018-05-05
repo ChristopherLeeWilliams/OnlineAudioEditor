@@ -20,6 +20,7 @@
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
   <script>
     $(function(){
+      // When Page Loads ->
 
       // EVENT - when file input changes:
       $("#file").change(function(){
@@ -34,12 +35,11 @@
         } else {
           ajax();
         }
-
       });
     });
 
-    // FUNCTION - placeholder AJAX call (communicates with server)
     function ajax() {
+      // FUNCTION - placeholder AJAX call (communicates with server)
       var audio_data = get_audio_info();
       remove_audio_player();
       start_load_icon();
@@ -52,8 +52,13 @@
       })
       .done(function(response) {
         stop_load_icon();
-        console.log("data:audio/mp3;base64,"+response)
-        create_audio_player("data:audio/mp3;base64,"+response)
+        if(response["error"] != null) {
+          alert(response["error"])
+        } else {
+          var new_src = "data:"+response["contentType"]+";base64,"+response["song"];
+          console.log(new_src);
+          create_audio_player(new_src);
+        }
       })
       .fail(function(err) { console.log(err); stop_load_icon();})
       .always(function() {});
@@ -72,6 +77,7 @@
         fileReader.readAsDataURL($('#file').prop('files')[0]);
       } else {audio_player.src = src;}
 
+      remove_audio_player();
       $('.audio-container').append(audio_player);
     }
 
@@ -92,18 +98,17 @@
     }
 
     function remove_audio_player() {
-      // Removes existing audio player and file input value
+      // Removes existing audio player
       $('.audio-container').empty();
-      $('#file').val("");
     }
 
-    // Start awesome loader icon
     function start_load_icon() {
+      // Start awesome loader icon
       $('.audio-container').append('<i class="fa fa-refresh fa-spin" style="font-size:24px"></i>');
     }
 
-    // Stop awesome loader icon
     function stop_load_icon() {
+      // Stop awesome loader icon
       $('.audio-container').empty();
     }
   </script>
