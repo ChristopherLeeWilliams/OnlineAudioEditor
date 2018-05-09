@@ -25,7 +25,7 @@ bootstrap = Bootstrap(app)
 @app.route('/crop', methods=['POST','GET'])
 def crop_audio():
     json_data = request.json
-    
+
     #return jsonify(something in dictionary format)
     return jsonify({"data":"Song Cropped"})
 
@@ -130,5 +130,13 @@ def pydub_to_b64_ascii(pydubSong, exportFormat):
         "song": base64.b64encode(song).decode('ascii'),
         "contentType": format_to_contentType(exportFormat)
     }
+
+
+def downloadArtCover(artist, album):
+    file_size = int('600')
+    file_path = "coer.jpg"
+    subprocess.check_call([r"sacad.exe", str(artist), str(album), str(file_size), str(file_path)])
+
+
 
 # ----------------------------------- END FUNCTIONS ------------------------------------
