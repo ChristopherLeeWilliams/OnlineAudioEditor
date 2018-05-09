@@ -11,8 +11,29 @@ from pydub import AudioSegment
 app= Flask(__name__, static_url_path = "/static", static_folder = "static")
 bootstrap = Bootstrap(app)
 
+# --------------------------------------- ROUTES ---------------------------------------
 
-# CURRENT ROUTE WHERE FILE DATA IS SENT
+# Notes on crop and splice timestamps
+#   Some error checking has been done on client via javascript to help insure:
+#   - The startTime passed will never be less than 0
+#   - The endTime passed will at max be the song duration
+#   - startTime will always be less than endTime
+#
+#   It may be worth setting up some error catching later for good measure though.
+#   (Client side scripts can be modified by determined users)
+
+@app.route('/crop', methods=['POST','GET'])
+def crop_audio():
+    json_data = request.json
+    
+    #return jsonify(something in dictionary format)
+    return jsonify({"data":"Song Cropped"})
+
+@app.route('/splice', methods=['POST'])
+def splice_audio():
+    return "Song Spliced"
+
+# TEST ROUTE: Format should be the same for most other routes
 @app.route('/test', methods=['POST','GET'])
 def test_audio():
     # Parse JSON Data From Request and convert b64 ascii audio data to pydub song
@@ -35,15 +56,14 @@ def test_audio():
     b64_new_song_data = pydub_to_b64_ascii(return_song, pydub_data["format"])
     return jsonify(b64_new_song_data)
 
-
-@app.route('/crop', methods=['POST'])
-def crop_audio():
-    return "audio cropped"
-
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
     return render_template('index.html')
 
+# ------------------------------------- END ROUTES -------------------------------------
+
+
+# ------------------------------------- FUNCTIONS --------------------------------------
 def contentType_to_format(cT):
     # Translates contentType supplied from
     #  client to audio format used in pydub
@@ -66,7 +86,7 @@ def format_to_contentType(f):
         'm4a' : "audio/m4a"
     }.get(f, "audio/mp3")   # If type not found, default on mp3
 
-def b64_ascii_to_pydub(b64Song=-1, contentType=-1-1):
+def b64_ascii_to_pydub(b64Song=-1, contentType=-1):
     # Converts client supplied b64 ascii audio data with
     #   specified contentType to pydub formatted song
 
@@ -110,3 +130,5 @@ def pydub_to_b64_ascii(pydubSong, exportFormat):
         "song": base64.b64encode(song).decode('ascii'),
         "contentType": format_to_contentType(exportFormat)
     }
+
+# ----------------------------------- END FUNCTIONS ------------------------------------
