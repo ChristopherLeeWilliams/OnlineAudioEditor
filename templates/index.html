@@ -67,7 +67,7 @@
         "startTime": times["start"],
         "endTime": times["end"]
       }
-      console.log(data);
+      // console.log(data);
       // Remove player and start load icon
       remove_audio_player();
       start_load_icon();
@@ -99,9 +99,8 @@
 
     function timestamp_to_mili(timestamp) {
       // Add format padding if missing
-      timestamp = "0"+timestamp;
-      if(timestamp.indexOf(":") == -1) { timestamp = timestamp +":0"; }
-      else { timestamp = timestamp +"0"; }
+      if(timestamp.indexOf(":") == -1) { timestamp = "00"+timestamp +":0"; }
+      else { timestamp = "00"+timestamp +"00"; }
 
       // Split timestamp on colon to separate minutes and seconds
       var timestamp = timestamp.split(":");
@@ -109,16 +108,18 @@
       var time = 0;
 
       // Get value of number before colon
-      var num1 = Number(timestamp[0]);
       if(typeof timestamp[0] === "undefined") { return -1; }
+      timestamp[0] = timestamp[0].substring(0, 2);
+      var num1 = Number(timestamp[0]);
       if(!Number.isInteger(num1)) {return -1;}
       // console.log("Num1: "+num1);
       if(num1 < 0) {return -1;}
       time += num1 * 60 * 1000;
 
       // Get value of number after colon
-      var num2 = Number(timestamp[1]);
       if(typeof timestamp[1] === "undefined") { return -1; }
+      timestamp[1] = timestamp[1].substring(0, 2);
+      var num2 = Number(timestamp[1]);
       if(!Number.isInteger(num2)) {return -1;}
       // console.log("Num2: "+num2);
       if(num2 < 0) {return -1;}

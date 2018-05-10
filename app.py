@@ -25,7 +25,7 @@ bootstrap = Bootstrap(app)
 @app.route('/crop', methods=['POST','GET'])
 def crop_audio():
     json_data = request.json
-    
+
     #return jsonify(something in dictionary format)
     return jsonify({"data":"Song Cropped"})
 
