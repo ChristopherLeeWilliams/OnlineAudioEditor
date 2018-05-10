@@ -62,6 +62,7 @@
     <ul class="nav nav-tabs">
       <li class="active"><a data-toggle="tab" href="#file-input-div">File</a></li>
       <li><a data-toggle="tab" href="#link-input-div">URL</a></li>
+      <li><a data-toggle="tab" href="#search-input-div">Search</a></li>
       <li><a style="cursor: pointer; color: red; font-weight: bold" onclick="cancel_image()">Clear</a></li>
     </ul></br>
 
@@ -72,6 +73,11 @@
       <div id="link-input-div" class="tab-pane fade">
         Image URL: <input id="image-url" type="url" size="20">
         <button type="button" class="btn btn-info" id="image-url-preview-btn">Preview</button></br></br>
+      </div>
+      <div id="search-input-div" class="tab-pane fade">
+        Artist: <input id="artist" type="text" size="10"><br>
+        Album:  <input id="album" type="text" size="10"><br>
+        <button type="button" class="btn btn-info" onclick="download_search()">Search</button></br></br>
       </div>
     </div></br>
 
@@ -118,6 +124,27 @@
       $('#image-url').val("");
       $('#preview-image').attr('src', "");
       $('.preview-image-div').hide();
+    }
+
+    function download_search(){
+      var artist = $('#artist').val();
+      var album = $('#album').val();
+      var data = {
+            "artist" : artist,
+            "album" : album
+      }
+      $.ajax({
+        url: '/downloadAlbumArt',
+        method: 'POST',
+        data: JSON.stringify(data),
+        contentType:"application/json; charset=utf-8",
+        dataType: 'json'
+      })
+      .done(function(response) {
+          console.log(response);
+      })
+      .fail(function(err) { console.log(err) })
+      .always(function() {});
     }
 
     function crop_or_split(operation) {
