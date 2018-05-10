@@ -26,16 +26,50 @@ import subprocess
 #   It may be worth setting up some error catching later for good measure though.
 #   (Client side scripts can be modified by determined users)
 
+@app.route('/crop', methods=['POST','Get'])
+def yt_dl():
+    json_data = request.json
+    outtmpl = newname + '.%(ext)s'
+    ydl_opts = {
+        'format': 'bestaudio/best',
+        'outtmpl': outtmpl,
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+            'preferredquality': '192',
+        },
+        {'key': 'FFmpegMetadata'},
+        ],
+
+    }
+    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+        info_dict = ydl.extract_info(self.urledit.text(), download=True)
+
+
 @app.route('/crop', methods=['POST','GET'])
 def crop_audio():
     json_data = request.json
-
+    pydub_data = b64_ascii_to_pydub(json_data["base64"], json_data["contentType"])
+    if("error" in pydub_data):
+        return jsonify({ "error": pydub_data["error"] })
+    song = pydub_data["song"]
+    cropsong = song[json_data["startTime"]:json_data["endTime"]]
+    base64_audio = pydub_to_b64_ascii(cropsong, pydub_data["format"])
     #return jsonify(something in dictionary format)
-    return jsonify({"data":"Song Cropped"})
+    return jsonify(base64_audio)
 
 @app.route('/splice', methods=['POST'])
 def splice_audio():
-    return "Song Spliced"
+    json_data = request.json
+    pydub_data = b64_ascii_to_pydub(json_data["base64"], json_data["contentType"])
+    if("error" in pydub_data):
+        return jsonify({ "error": pydub_data["error"] })
+    song = pydub_data["song"]
+    start = song[:json_data["startTime"]]
+    end = song[json_data["endTime"]]
+    spliced = start + end
+    base64_audio = pydub_to_b64_ascii(spliced, pydub_data["format"])
+    return jsonify(base64_audio)
 
 @app.route('/supportedFormats', methods=['GET'])
 def get_supported_formats():
@@ -64,9 +98,12 @@ def test_audio():
     b64_new_song_data = pydub_to_b64_ascii(return_song, pydub_data["format"])
     return jsonify(b64_new_song_data)
 
-@app.route('/downloadAlbumArt', methods=['GET'])
+@app.route('/downloadAlbumArt', methods=['POST'])
 def getArt():
-    downloadArtCover("J Cole","KOD")
+    json_data = request.json
+    artist = json_data["artist"]
+    album = json_data["album"]
+    downloadArtCover(artist,album)
     return "Downloaded"
 
 @app.route('/', methods=['GET', 'POST'])
