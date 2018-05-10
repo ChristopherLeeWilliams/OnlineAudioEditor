@@ -5,24 +5,35 @@
 {% endblock %}
 
 {% block content %}
+<meta charset="utf-8">
+
+<!--  Default Flask Bootstrap not working for certain functions, so import-->
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+
+<!-- <meta name="viewport" content="width=device-width, initial-scale=1"> -->
 <link rel="stylesheet" href="static/css/main.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
 <div class="row wrapper" id="row-main">
   <div class="col-md-12" id="content">
+
     <span class='pull-right' id="album-art-toggle-span">
       <button type="button" class="glyphicon glyphicon-chevron-left btn btn-info" id="album-art-toggle"><span class="font-override"> Album Art</span></button>
     </span>
+
     <div class="spacer">
       <h1 style="text-align:center">Online Audio Editor</h1></br>
       <input type="file" id="file" name="file"></br>
       <div class="form-inline" id="audio-manipulators">
         <fieldset style="border: solid grey 1px; padding: 1em; text-align: center">
           <legend><div class="audio-container"></div></legend>
+
           <label for="start-time">Start Time</label>
           <input type="text" class="form-control mb-2 mr-sm-2 mb-sm-0" id="start-time" placeholder="0:00">
-
           <label for="end-time">End Time</label>
           <input type="text" class="form-control mb-2 mr-sm-2 mb-sm-0" id="end-time" placeholder="3:25">
 
@@ -32,19 +43,42 @@
           <i class="fa fa-question-circle" aria-hidden="true" style="font-size:18px" id="control-information" data-toggle="tooltip"
             title="CROP: creates new audio track, removing everything before start time and after end time.
               SPLICE: creates new audio track, keeping only everything before start time and after end time."></i>
+
         </fieldset>
       </div>
+
       <div class="download-selection">
         <button type="button" class="btn btn-success">Download As</button>
         <select id="download-formats"></select>
       </div>
+
     </div>
   </div>
+
   <div class="col-md-3 collapsed" id="album-art">
     <h2 style="text-align:center">Add Album Art</h2>
     <hr style="margin:10%; margin-top: 5%; border: solid black 1px">
-    <input type='file' onchange="readURL(this);" /></br>
-    <img id="preview-image" src="#" alt="your image" height="300" width="300" hidden/>
+
+    <ul class="nav nav-tabs">
+      <li class="active"><a data-toggle="tab" href="#file-input-div">File</a></li>
+      <li><a data-toggle="tab" href="#link-input-div">URL</a></li>
+      <li><a style="cursor: pointer; color: red; font-weight: bold" onclick="cancel_image()">Clear</a></li>
+    </ul></br>
+
+    <div class="tab-content">
+      <div id="file-input-div" class="tab-pane fade in active">
+        <input type='file' onchange="readURL(this);" id="image-file"/></br>
+      </div>
+      <div id="link-input-div" class="tab-pane fade">
+        Image URL: <input id="image-url" type="url" size="20">
+        <button type="button" class="btn btn-info" id="image-url-preview-btn">Preview</button></br></br>
+      </div>
+    </div></br>
+
+    <div class="preview-image-div">
+      <img id="preview-image" src="" alt="your image" height="300" width="300"/>
+    </div>
+  <!-- </br><button type="button" class="btn btn-warning" onclick="cancel_image()">Cancel</button> -->
   </div>
 </div>
 
@@ -70,7 +104,21 @@
         $("#content").toggleClass("col-md-12 col-md-9");
         $('#album-art-toggle').toggleClass("glyphicon-chevron-left glyphicon-chevron-right");
       });
+
+      $('#image-url-preview-btn').click(function() {
+        var url = $('#image-url').val();
+        if(url === "") {alert("No link entered!"); return;}
+        $('#preview-image').attr('src', url);
+        $('.preview-image-div').show();
+      });
     });
+
+    function cancel_image() {
+      $('#image-file').val("");
+      $('#image-url').val("");
+      $('#preview-image').attr('src', "");
+      $('.preview-image-div').hide();
+    }
 
     function crop_or_split(operation) {
       // Makes an ajax request to url based off of the operation type
@@ -190,7 +238,7 @@
         var reader = new FileReader();
         reader.onload = function(e) {
           $('#preview-image').attr('src', e.target.result);
-          $('#preview-image').show();
+          $('.preview-image-div').show();
         }
         reader.readAsDataURL(input.files[0]);
         }
