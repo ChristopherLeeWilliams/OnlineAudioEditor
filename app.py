@@ -148,7 +148,7 @@ def pydub_to_b64_ascii(pydubSong, exportFormat):
 def downloadArtCover(artist, album):
     file_size = int('300') #Width and Height
     file_path = "./cover.jpg"
-    subprocess.check_call([r"./sacad.exe", str(artist), str(album), str(file_size), str(file_path)], shell=True)
+    subprocess.call([r"./sacad.exe", str(artist), str(album), str(file_size), str(file_path)])
 
 
 
