@@ -64,9 +64,12 @@ def test_audio():
     b64_new_song_data = pydub_to_b64_ascii(return_song, pydub_data["format"])
     return jsonify(b64_new_song_data)
 
-@app.route('/downloadAlbumArt', methods=['GET'])
+@app.route('/downloadAlbumArt', methods=['POST'])
 def getArt():
-    downloadArtCover("J Cole","KOD")
+    json_data = request.json
+    artist = json_data["artist"]
+    album = json_data["album"]
+    downloadArtCover(artist,album)
     return "Downloaded"
 
 @app.route('/', methods=['GET', 'POST'])
@@ -148,7 +151,7 @@ def pydub_to_b64_ascii(pydubSong, exportFormat):
 def downloadArtCover(artist, album):
     file_size = int('300') #Width and Height
     file_path = "./cover.jpg"
-    subprocess.check_call([r"./sacad.exe", str(artist), str(album), str(file_size), str(file_path)], shell=True)
+    subprocess.call([r"./sacad.exe", str(artist), str(album), str(file_size), str(file_path)])
 
 
 
