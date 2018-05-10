@@ -33,6 +33,10 @@ def crop_audio():
 def splice_audio():
     return "Song Spliced"
 
+@app.route('/supportedFormats', methods=['GET'])
+def get_supported_formats():
+    return jsonify(["mp3","flac","wav","ogg","m4a"]);
+
 # TEST ROUTE: Format should be the same for most other routes
 @app.route('/test', methods=['POST','GET'])
 def test_audio():
@@ -134,7 +138,7 @@ def pydub_to_b64_ascii(pydubSong, exportFormat):
 
 def downloadArtCover(artist, album):
     file_size = int('600')
-    file_path = "coer.jpg"
+    file_path = "cover.jpg"
     subprocess.check_call([r"sacad.exe", str(artist), str(album), str(file_size), str(file_path)])
 
 

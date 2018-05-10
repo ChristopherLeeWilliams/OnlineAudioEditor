@@ -9,40 +9,66 @@
 <link rel="stylesheet" href="static/css/main.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
-  <div class="container">
-    <h1 style="text-align:center">Upload Audio File</h1></br>
-    <input type="file" id="file" name="file" style="width:100%"></br>
-    <!-- <input type="button" id="submit-btn" value="Submit"> -->
+<div class="row wrapper" id="row-main">
+  <div class="col-md-12" id="content">
+    <span class='pull-right' id="album-art-toggle-span">
+      <button type="button" class="glyphicon glyphicon-chevron-left btn btn-info" id="album-art-toggle"><span class="font-override"> Album Art</span></button>
+    </span>
+    <div class="spacer">
+      <h1 style="text-align:center">Online Audio Editor</h1></br>
+      <input type="file" id="file" name="file"></br>
+      <div class="form-inline" id="audio-manipulators">
+        <fieldset style="border: solid grey 1px; padding: 1em; text-align: center">
+          <legend><div class="audio-container"></div></legend>
+          <label for="start-time">Start Time</label>
+          <input type="text" class="form-control mb-2 mr-sm-2 mb-sm-0" id="start-time" placeholder="0:00">
 
-    <form class="form-inline" id="audio-manipulators">
-      <fieldset style="border: solid grey 1px; padding: 1em; text-align: center">
-        <legend><div class="audio-container"></div></legend>
-        <label for="start-time">Start Time</label>
-        <input type="text" class="form-control mb-2 mr-sm-2 mb-sm-0" id="start-time" placeholder="0:00">
+          <label for="end-time">End Time</label>
+          <input type="text" class="form-control mb-2 mr-sm-2 mb-sm-0" id="end-time" placeholder="3:25">
 
-        <label for="end-time">End Time</label>
-        <input type="text" class="form-control mb-2 mr-sm-2 mb-sm-0" id="end-time" placeholder="3:25">
+          <button type="button" class="btn btn-info" onclick="crop_or_split('crop')">Crop</button>
+          <button type="button" class="btn btn-info" onclick="crop_or_split('splice')">Splice</button>
 
-        <button type="button" class="btn btn-primary" onclick="crop_or_split('crop')">Crop</button>
-        <button type="button" class="btn btn-primary" onclick="crop_or_split('splice')">Splice</button>
-
-        <i class="fa fa-question-circle" aria-hidden="true" style="font-size:18px" id="control-information" data-toggle="tooltip"
-          title="CROP: creates new audio track, removing everything before start time and after end time.
-            SPLICE: creates new audio track, keeping only everything before start time and after end time.">
-        </i>
-      </fieldset>
-    </form>
-
+          <i class="fa fa-question-circle" aria-hidden="true" style="font-size:18px" id="control-information" data-toggle="tooltip"
+            title="CROP: creates new audio track, removing everything before start time and after end time.
+              SPLICE: creates new audio track, keeping only everything before start time and after end time."></i>
+        </fieldset>
+      </div>
+      <div class="download-selection">
+        <button type="button" class="btn btn-success">Download As</button>
+        <select id="download-formats"></select>
+      </div>
+    </div>
   </div>
+  <div class="col-md-3 collapsed" id="album-art">
+    <h2 style="text-align:center">Add Album Art</h2>
+    <hr style="margin:10%; margin-top: 5%; border: solid black 1px">
+    <input type='file' onchange="readURL(this);" /></br>
+    <img id="preview-image" src="#" alt="your image" height="300" width="300" hidden/>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
   <script>
-    $(function(){ // When Page Loads ->
+    $(function(){ // When Page Has Fully Loaded ->
+
+      // Generate the drop down selectors for downloading the audio
+      //  gets supported types from server
+      create_download_dropdown();
+
       // EVENT - when file input changes:
       $("#file").change(function(){
         create_audio_player();
+      });
+
+      // Toggle Audio Sidebar
+      $('#album-art-toggle').click(function() {
+        $("#album-art").toggleClass("collapsed");
+        $("#content").toggleClass("col-md-12 col-md-9");
+        $('#album-art-toggle').toggleClass("glyphicon-chevron-left glyphicon-chevron-right");
       });
     });
 
@@ -98,6 +124,7 @@
     }
 
     function timestamp_to_mili(timestamp) {
+
       // Add format padding if missing
       if(timestamp.indexOf(":") == -1) { timestamp = "00"+timestamp +":0"; }
       else { timestamp = "00"+timestamp +"00"; }
@@ -109,7 +136,6 @@
 
       // Get value of number before colon
       if(typeof timestamp[0] === "undefined") { return -1; }
-      timestamp[0] = timestamp[0].substring(0, 2);
       var num1 = Number(timestamp[0]);
       if(!Number.isInteger(num1)) {return -1;}
       // console.log("Num1: "+num1);
@@ -118,7 +144,6 @@
 
       // Get value of number after colon
       if(typeof timestamp[1] === "undefined") { return -1; }
-      timestamp[1] = timestamp[1].substring(0, 2);
       var num2 = Number(timestamp[1]);
       if(!Number.isInteger(num2)) {return -1;}
       // console.log("Num2: "+num2);
@@ -160,6 +185,17 @@
       };
     }
 
+    function readURL(input) {
+      if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          $('#preview-image').attr('src', e.target.result);
+          $('#preview-image').show();
+        }
+        reader.readAsDataURL(input.files[0]);
+        }
+      }
+
     function remove_audio_player() {
       // Removes existing audio player
       $('.audio-container').empty();
@@ -173,6 +209,18 @@
     function stop_load_icon() {
       // Stop awesome loader icon
       $('.audio-container').empty();
+    }
+
+    function create_download_dropdown() {
+      $.get( "/supportedFormats", function( data ) {
+        // $( ".result" ).html( data );
+        $.each(data, function(key, value) {
+          $('#download-formats')
+            .append($("<option></option>")
+            .attr("value",key)
+            .text(value));
+          });
+      });
     }
 
     function get_time_stamps_miliseconds() {

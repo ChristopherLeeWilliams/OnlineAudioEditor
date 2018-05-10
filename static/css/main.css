@@ -1,3 +1,56 @@
+#album-art {
+    -webkit-transition: margin 0.3s ease;
+    -moz-transition: margin 0.3s ease;
+    -o-transition: margin 0.3s ease;
+    transition: margin 0.3s ease;
+    border-left: solid 2px gray;
+    height: 100vh;
+    max-height: 100%;
+    text-align: center;
+}
+
+#album-art-toggle {
+  font: arial, sans-serif;
+}
+.collapsed {
+  /* hide it for small displays*/
+  display: none;
+}
+
+#content {
+    padding-top: 1%;
+    -webkit-transition: width 0.3s ease;
+    -moz-transition: width 0.3s ease;
+    -o-transition: width 0.3s ease;
+    transition: width 0.3s ease;
+}
+
+.download-selection {
+  padding: 10px;
+  text-align: center;
+  font-size: 18px;
+}
+
+#file {
+  width: 100%;
+}
+
+.font-override {
+  font-family: "Arial", Gadget, sans-serif;
+  font-style: normal;
+  font-size: 18px ! important; //to make fontsize bigger
+}
+
+#row-main {
+  /* necessary to hide collapsed sidebar */
+  overflow-x: hidden;
+}
+
+.spacer {
+  padding-left:10%;
+  padding-right:10%;
+}
+
 /* Tooltip container */
 .tooltip {
     position: relative;
@@ -23,4 +76,20 @@
 /* Show the tooltip text when you mouse over the tooltip container */
 .tooltip:hover .tooltiptext {
     visibility: visible;
+}
+
+.wrapper {
+  position: fixed;
+  /* top: 0px;
+  left: 0px; */
+  height: 100%;
+  width: 100%;
+}
+
+@media (min-width: 992px) {
+  .collapsed {
+    display: block;
+    /* same width as sidebar */
+    margin-right: -25%;
+  }
 }
