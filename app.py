@@ -26,7 +26,7 @@ import subprocess
 #   It may be worth setting up some error catching later for good measure though.
 #   (Client side scripts can be modified by determined users)
 
-@app.route('/crop', methods=['POST','Get'])
+@app.route('/ytdl', methods=['POST','GET'])
 def yt_dl():
     json_data = request.json
     outtmpl = newname + '.%(ext)s'
