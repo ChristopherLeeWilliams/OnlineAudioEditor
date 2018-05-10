@@ -11,6 +11,10 @@ from pydub import AudioSegment
 app= Flask(__name__, static_url_path = "/static", static_folder = "static")
 bootstrap = Bootstrap(app)
 
+# SACAD IMPORTS
+__requires__ = 'sacad==2.1.1'
+import subprocess
+
 # --------------------------------------- ROUTES ---------------------------------------
 
 # Notes on crop and splice timestamps
@@ -59,6 +63,11 @@ def test_audio():
     # Second argumnet of pydub_to_b64_ascii allows for audio conversions
     b64_new_song_data = pydub_to_b64_ascii(return_song, pydub_data["format"])
     return jsonify(b64_new_song_data)
+
+@app.route('/downloadAlbumArt', methods=['GET'])
+def getArt():
+    downloadArtCover("J Cole","KOD")
+    return "Downloaded"
 
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
@@ -137,9 +146,9 @@ def pydub_to_b64_ascii(pydubSong, exportFormat):
 
 
 def downloadArtCover(artist, album):
-    file_size = int('600')
-    file_path = "cover.jpg"
-    subprocess.check_call([r"sacad.exe", str(artist), str(album), str(file_size), str(file_path)])
+    file_size = int('300') #Width and Height
+    file_path = "./cover.jpg"
+    subprocess.check_call([r"./sacad.exe", str(artist), str(album), str(file_size), str(file_path)], shell=True)
 
 
 
