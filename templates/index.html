@@ -32,18 +32,23 @@
         <fieldset style="border: solid grey 1px; padding: 1em; text-align: center">
           <legend><div class="audio-container"></div></legend>
 
-          <label for="start-time">Start Time</label>
-          <input type="text" class="form-control mb-2 mr-sm-2 mb-sm-0" id="start-time" placeholder="0:00">
-          <label for="end-time">End Time</label>
-          <input type="text" class="form-control mb-2 mr-sm-2 mb-sm-0" id="end-time" placeholder="3:25">
+          <div class="form-inline">
+            Start Time:
+            <input type="number" class="form-control" id="start-min" placeholder="min">
+            <input type="number" class="form-control" id="start-sec" placeholder="sec">
 
-          <button type="button" class="btn btn-info" onclick="crop_or_split('crop')">Crop</button>
-          <button type="button" class="btn btn-info" onclick="crop_or_split('splice')">Splice</button>
+            Stop Time:
+            <input type="number" class="form-control" id="end-min" placeholder="min">
+            <input type="number" class="form-control" id="end-sec" placeholder="sec">
 
-          <i class="fa fa-question-circle" aria-hidden="true" style="font-size:18px" id="control-information" data-toggle="tooltip"
-            title="CROP: creates new audio track, removing everything before start time and after end time.
-              SPLICE: creates new audio track, keeping only everything before start time and after end time."></i>
-
+          </br></br><div class="form-inline">
+              <button type="button" class="btn btn-info" onclick="crop_or_split('crop')">Crop</button>
+              <button type="button" class="btn btn-info" onclick="crop_or_split('splice')">Splice</button>
+              <i class="fa fa-question-circle" aria-hidden="true" style="font-size:20px" id="control-information" data-toggle="tooltip"
+                title="CROP: creates new audio track, removing everything before start time and after end time.
+                  SPLICE: creates new audio track, keeping only everything before start time and after end time."></i>
+            </div>
+          </div>
         </fieldset>
       </div>
 
@@ -126,25 +131,33 @@
       $('.preview-image-div').hide();
     }
 
-    function download_search(){
-      var artist = $('#artist').val();
-      var album = $('#album').val();
-      var data = {
-            "artist" : artist,
-            "album" : album
-      }
-      $.ajax({
-        url: '/downloadAlbumArt',
-        method: 'POST',
-        data: JSON.stringify(data),
-        contentType:"application/json; charset=utf-8",
-        dataType: 'json'
-      })
-      .done(function(response) {
-          console.log(response);
-      })
-      .fail(function(err) { console.log(err) })
-      .always(function() {});
+    function create_audio_player(src) {
+      // Generates an audio player with a supplied source
+      //  OR the source found from the input file
+      var audio_player = document.createElement('audio')
+      audio_player.id = 'audio-player';
+      audio_player.controls = 'controls';
+
+      if (typeof src === 'undefined') {
+        var fileReader = new FileReader();
+        fileReader.onload = function () { audio_player.src = fileReader.result; }; // base 64 audio data (with prepended formatting)
+        fileReader.readAsDataURL($('#file').prop('files')[0]);
+      } else {audio_player.src = src;}
+
+      remove_audio_player();
+      $('.audio-container').append(audio_player);
+    }
+
+    function create_download_dropdown() {
+      $.get( "/supportedFormats", function( data ) {
+        // $( ".result" ).html( data );
+        $.each(data, function(key, value) {
+          $('#download-formats')
+            .append($("<option></option>")
+            .attr("value",key)
+            .text(value));
+          });
+      });
     }
 
     function crop_or_split(operation) {
@@ -156,7 +169,7 @@
 
       // Get timestamps
       var times = get_time_stamps_miliseconds();
-      if(times == -1) {alert("Error: Incorrect timestamps or audio not selected"); return -1;}
+      if(times["error"]) {alert(times["error"]); return;}
 
       // Get audio data
       var audio_data = get_audio_info();
@@ -186,63 +199,37 @@
 
         // Uncomment code below when audio source can be rewritten with response data
         stop_load_icon();
-        // if(response["error"] != null) {
-        //   alert(response["error"])
-        // } else {
-        //   var new_src = "data:"+response["contentType"]+";base64,"+response["song"];
-        //   console.log(new_src);
-        //   create_audio_player(new_src);
-        // }
+        if(response["error"] != null) {
+          alert(response["error"]);
+        } else {
+          var new_src = "data:"+response["contentType"]+";base64,"+response["song"];
+          console.log(new_src);
+          create_audio_player(new_src);
+        }
       })
       .fail(function(err) { console.log(err["statusCode"]); stop_load_icon();})
       .always(function() {});
     }
 
-    function timestamp_to_mili(timestamp) {
-
-      // Add format padding if missing
-      if(timestamp.indexOf(":") == -1) { timestamp = "00"+timestamp +":0"; }
-      else { timestamp = "00"+timestamp +"00"; }
-
-      // Split timestamp on colon to separate minutes and seconds
-      var timestamp = timestamp.split(":");
-      if(timestamp.length > 2) {return -1;}
-      var time = 0;
-
-      // Get value of number before colon
-      if(typeof timestamp[0] === "undefined") { return -1; }
-      var num1 = Number(timestamp[0]);
-      if(!Number.isInteger(num1)) {return -1;}
-      // console.log("Num1: "+num1);
-      if(num1 < 0) {return -1;}
-      time += num1 * 60 * 1000;
-
-      // Get value of number after colon
-      if(typeof timestamp[1] === "undefined") { return -1; }
-      var num2 = Number(timestamp[1]);
-      if(!Number.isInteger(num2)) {return -1;}
-      // console.log("Num2: "+num2);
-      if(num2 < 0) {return -1;}
-      time += num2 * 1000;
-
-      return time;
-    }
-
-    function create_audio_player(src) {
-      // Generates an audio player with a supplied source
-      //  OR the source found from the input file
-      var audio_player = document.createElement('audio')
-      audio_player.id = 'audio-player';
-      audio_player.controls = 'controls';
-
-      if (typeof src === 'undefined') {
-        var fileReader = new FileReader();
-        fileReader.onload = function () { audio_player.src = fileReader.result; }; // base 64 audio data (with prepended formatting)
-        fileReader.readAsDataURL($('#file').prop('files')[0]);
-      } else {audio_player.src = src;}
-
-      remove_audio_player();
-      $('.audio-container').append(audio_player);
+    function download_search(){
+      var artist = $('#artist').val();
+      var album = $('#album').val();
+      var data = {
+            "artist" : artist,
+            "album" : album
+      }
+      $.ajax({
+        url: '/downloadAlbumArt',
+        method: 'POST',
+        data: JSON.stringify(data),
+        contentType:"application/json; charset=utf-8",
+        dataType: 'json'
+      })
+      .done(function(response) {
+          console.log(response);
+      })
+      .fail(function(err) { console.log(err) })
+      .always(function() {});
     }
 
     function get_audio_info() {
@@ -257,6 +244,34 @@
       return {
         contentType: base64_split[0].split("data:")[1].split(";")[0],
         base64: base64_split[1]
+      };
+    }
+
+    function get_time_stamps_miliseconds() {
+      var start_min = $('#start-min').val();
+      var start_sec = $('#start-sec').val();
+      var end_min = $('#end-min').val();
+      var end_sec = $('#end-sec').val();
+
+      start_min = ($.isNumeric(start_min))? start_min : 0;
+      start_sec = ($.isNumeric(start_sec))? start_sec : 0;
+      end_min = ($.isNumeric(end_min))? end_min : 0;
+      end_sec = ($.isNumeric(end_sec))? end_sec : 0;
+
+      var start_mili = (start_min*60*1000) + (start_sec*1000);
+      var end_mili = (end_min*60*1000) + (end_sec*1000);
+
+      // Get max possible time to put cap on end time
+      if(!document.getElementById("audio-player")){return {"error":"No audio track selected!"};}
+      var max_time = document.getElementById("audio-player").duration * 1000;
+      end_mili = (end_mili > max_time) ? max_time : end_mili;
+
+      // console.log(start_mili + " and " + end_mili);
+      if(start_mili >= end_mili) { return{"error":"Start time must be less than end time"}; }
+
+      return {
+        "start": start_mili,
+        "end": end_mili
       };
     }
 
@@ -284,46 +299,6 @@
     function stop_load_icon() {
       // Stop awesome loader icon
       $('.audio-container').empty();
-    }
-
-    function create_download_dropdown() {
-      $.get( "/supportedFormats", function( data ) {
-        // $( ".result" ).html( data );
-        $.each(data, function(key, value) {
-          $('#download-formats')
-            .append($("<option></option>")
-            .attr("value",key)
-            .text(value));
-          });
-      });
-    }
-
-    function get_time_stamps_miliseconds() {
-      var start = $('#start-time').val();
-      var end = $('#end-time').val();
-
-      try {
-        var start_mili = timestamp_to_mili(start);
-        var end_mili = timestamp_to_mili(end);
-        if((start_mili == -1) || (end_mili == -1)) {return -1;}
-
-        // Get max possible time
-        var max_time = document.getElementById("audio-player").duration * 1000;
-
-        start_mili = (start_mili < 0) ? 0 : start_mili;
-        end_mili = (end_mili > max_time) ? max_time : end_mili;
-
-        // console.log(start_mili + " and " + end_mili);
-        if(start_mili >= end_mili) { return -1; }
-
-        return {
-          start: start_mili,
-          end: end_mili
-        };
-      } catch (err) {
-        // console.log(err);
-        return -1;
-      }
     }
   </script>
 {% endblock %}

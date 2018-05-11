@@ -26,7 +26,7 @@ import subprocess
 #   It may be worth setting up some error catching later for good measure though.
 #   (Client side scripts can be modified by determined users)
 
-@app.route('/crop', methods=['POST','Get'])
+@app.route('/youtubeDL', methods=['POST','Get'])
 def yt_dl():
     json_data = request.json
     outtmpl = newname + '.%(ext)s'
@@ -66,7 +66,7 @@ def splice_audio():
         return jsonify({ "error": pydub_data["error"] })
     song = pydub_data["song"]
     start = song[:json_data["startTime"]]
-    end = song[json_data["endTime"]]
+    end = song[json_data["endTime"]:]
     spliced = start + end
     base64_audio = pydub_to_b64_ascii(spliced, pydub_data["format"])
     return jsonify(base64_audio)
