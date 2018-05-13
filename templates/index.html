@@ -264,7 +264,7 @@
         var str = "data:"+response["contentType"]+";base64,"+response["song"];
         var blob = base64ToBlob(str);
         var obj_url = URL.createObjectURL(blob);
-        $('<a href="'+obj_url+'" download="test.mp3"></a>')[0].click();
+        $('<a href="'+obj_url+'" download="test.'+format+'"></a>')[0].click();
       })
       .fail(function(err) { console.log(err);})
       .always(function() {});

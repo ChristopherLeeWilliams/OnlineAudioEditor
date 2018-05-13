@@ -60,9 +60,10 @@ def downloadAudio():
     format = json_data["download_format"]
     contentType = format_to_contentType(format)
 
+    print(format)
+
     if(contentType == -1):
         return jsonify({"error":"Format not supported!"})
-
 
     song_data = b64_ascii_to_pydub(json_data["base64"], json_data["contentType"])
     if("error" in song_data):
@@ -132,7 +133,7 @@ def splice_audio():
 
 @app.route('/supportedFormats', methods=['GET'])
 def get_supported_formats():
-    return jsonify(["mp3","flac","wav","ogg","m4a"]);
+    return jsonify(["mp3","flac","wav","ogg"]);
 
 # TEST ROUTE: Format should be the same for most other routes
 @app.route('/test', methods=['POST','GET'])
@@ -221,8 +222,7 @@ def contentType_to_format(cT):
         'audio/mpeg': "mp3",
         'audio/flac': "flac",
         'audio/wav' : "wav",
-        'audio/ogg' : "ogg",
-        'audio/m4a' : "m4a"
+        'audio/ogg' : "ogg"
     }.get(cT, -1)   # If type not found, returns -1
 
 def downloadArtCover(artist, album):
@@ -236,8 +236,7 @@ def format_to_contentType(f):
         'mpeg': "audio/mp3",
         'flac': "audio/flac",
         'wav' : "audio/wav",
-        'ogg' : "audio/ogg",
-        'm4a' : "audio/m4a"
+        'ogg' : "audio/ogg"
     }.get(f, -1)   # If type not found, default on mp3
 
 def image_url_to_pillow(url):
