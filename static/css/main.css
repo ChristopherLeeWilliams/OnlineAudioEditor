@@ -16,6 +16,13 @@
   display: none;
 }
 
+#audio-file-input-div {
+  border: solid lightgrey 1px;
+  border-top:none;
+  padding: 1em;
+  text-align: center;
+}
+
 #content {
     padding-top: 1%;
     -webkit-transition: width 0.3s ease;
@@ -26,7 +33,6 @@
 
 .download-selection {
   padding: 10px;
-  text-align: center;
   font-size: 18px;
 }
 

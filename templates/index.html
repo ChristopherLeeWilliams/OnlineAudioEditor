@@ -13,8 +13,6 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
-
-<!-- <meta name="viewport" content="width=device-width, initial-scale=1"> -->
 <link rel="stylesheet" href="static/css/main.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
@@ -26,37 +24,56 @@
     </span>
 
     <div class="spacer">
+
       <h1 style="text-align:center">Online Audio Editor</h1></br>
-      <input type="file" id="file" name="file"></br>
-      <div class="form-inline" id="audio-manipulators">
-        <fieldset style="border: solid grey 1px; padding: 1em; text-align: center">
+
+      <ul class="nav nav-tabs">
+        <li class="active"><a data-toggle="tab" href="#audio-file-input-div">File</a></li>
+        <li><a data-toggle="tab" href="#yt-link-input-div">YouTube</a></li>
+      </ul>
+
+      <div class="tab-content">
+
+        <div id="audio-file-input-div" class="tab-pane fade in active">
+          <input type="file" id="file" name="file"></br>
           <legend><div class="audio-container"></div></legend>
+          <div class="form-inline" id="audio-manipulators">
 
-          <div class="form-inline">
-            Start Time:
-            <input type="number" class="form-control" id="start-min" placeholder="min">
-            <input type="number" class="form-control" id="start-sec" placeholder="sec">
+            <!-- <fieldset style="border: solid grey 1px; padding: 1em; text-align: center"> -->
 
-            Stop Time:
-            <input type="number" class="form-control" id="end-min" placeholder="min">
-            <input type="number" class="form-control" id="end-sec" placeholder="sec">
-
-          </br></br><div class="form-inline">
-              <button type="button" class="btn btn-info" onclick="crop_or_split('crop')">Crop</button>
-              <button type="button" class="btn btn-info" onclick="crop_or_split('splice')">Splice</button>
-              <i class="fa fa-question-circle" aria-hidden="true" style="font-size:20px" id="control-information" data-toggle="tooltip"
-                title="CROP: creates new audio track, removing everything before start time and after end time.
-                  SPLICE: creates new audio track, keeping only everything before start time and after end time."></i>
+            <div class="row">
+              <label for="start-min">Start Time:</label>
+              <input type="number" class="form-control" id="start-min" placeholder="min">
+              <input type="number" class="form-control" id="start-sec" placeholder="sec">
             </div>
+
+            <div class="row">
+              <label for="end-min">Stop Time:</label>
+              <input type="number" class="form-control" id="end-min" placeholder="min">
+              <input type="number" class="form-control" id="end-sec" placeholder="sec">
+            </div></br>
+
+            <div class="row">
+              <button type="button" class="btn btn-info" onclick="crop_or_splice('crop')">Crop</button>
+              <button type="button" class="btn btn-info" onclick="crop_or_splice('splice')">Splice</button>
+              <i class="fa fa-question-circle" aria-hidden="true" style="font-size:20px" id="control-information" data-toggle="tooltip"
+              title="CROP: creates new audio track, removing everything before start time and after end time.
+              SPLICE: creates new audio track, keeping only everything before start time and after end time."></i>
+            </div>
+            </fieldset>
           </div>
-        </fieldset>
-      </div>
+          </br>
+          <div class="download-selection">
+            <button type="button" class="btn btn-success">Download As</button>
+            <select id="download-formats"></select>
+          </div>
+        </div>
 
-      <div class="download-selection">
-        <button type="button" class="btn btn-success">Download As</button>
-        <select id="download-formats"></select>
-      </div>
+        <div id="yt-link-input-div" class="tab-pane fade">
+          Youtube Download
+        </div>
 
+      </div>
     </div>
   </div>
 
@@ -73,11 +90,11 @@
 
     <div class="tab-content">
       <div id="file-input-div" class="tab-pane fade in active">
-        <input type='file' onchange="readURL(this);" id="image-file"/></br>
+        <input type='file' onchange="preview_image(this);" id="image-file"/></br>
       </div>
       <div id="link-input-div" class="tab-pane fade">
         Image URL: <input id="image-url" type="url" size="20">
-        <button type="button" class="btn btn-info" id="image-url-preview-btn">Preview</button></br></br>
+        <button type="button" class="btn btn-info" onclick="get_image_info_from_url()">Preview</button></br></br>
       </div>
       <div id="search-input-div" class="tab-pane fade">
         Artist: <input id="artist" type="text" size="10"><br>
@@ -89,7 +106,7 @@
     <div class="preview-image-div">
       <img id="preview-image" src="" alt="your image" height="300" width="300"/>
     </div>
-  <!-- </br><button type="button" class="btn btn-warning" onclick="cancel_image()">Cancel</button> -->
+  </br><button type="button" class="btn btn-info" onclick="download_with_album_art()">Test</button>
   </div>
 </div>
 
@@ -115,13 +132,13 @@
         $("#content").toggleClass("col-md-12 col-md-9");
         $('#album-art-toggle').toggleClass("glyphicon-chevron-left glyphicon-chevron-right");
       });
-
-      $('#image-url-preview-btn').click(function() {
-        var url = $('#image-url').val();
-        if(url === "") {alert("No link entered!"); return;}
-        $('#preview-image').attr('src', url);
-        $('.preview-image-div').show();
-      });
+      //
+      // $('#image-url-preview-btn').click(function() {
+      //   var url = $('#image-url').val();
+      //   if(url === "") {alert("No link entered!"); return;}
+      //   $('#preview-image').attr('src', url);
+      //   $('.preview-image-div').show();
+      // });
     });
 
     function cancel_image() {
@@ -140,7 +157,7 @@
 
       if (typeof src === 'undefined') {
         var fileReader = new FileReader();
-        fileReader.onload = function () { audio_player.src = fileReader.result; }; // base 64 audio data (with prepended formatting)
+        fileReader.onload = function () { audio_player.src = fileReader.result;}; // base 64 audio data (with prepended formatting)
         fileReader.readAsDataURL($('#file').prop('files')[0]);
       } else {audio_player.src = src;}
 
@@ -160,7 +177,7 @@
       });
     }
 
-    function crop_or_split(operation) {
+    function crop_or_splice(operation) {
       // Makes an ajax request to url based off of the operation type
       url = "";
       if(operation === "crop") { url = "/crop"; }
@@ -173,6 +190,7 @@
 
       // Get audio data
       var audio_data = get_audio_info();
+      if(audio_data["error"]) {alert(audio_data["error"]); return;}
 
       // Format ajax data
       var data = {
@@ -232,6 +250,65 @@
       .always(function() {});
     }
 
+    function download_with_album_art() {
+      var image_info = get_image_info();
+      var audio_info = get_audio_info();
+
+
+
+      if(audio_info["error"]) {alert(audio_info["error"]); return;}
+      if(image_info["error"]) {alert(image_info["error"]); return;}
+
+      // Format ajax data
+      var data = {
+        "base64_audio": audio_info["base64"],
+        "contentType_audio": audio_info["contentType"],
+        "base64_image": image_info["base64"],
+        "contentType_image": image_info["contentType"]
+      }
+
+      $.ajax({
+        url: '/downloadAudioWithAlbumArt',
+        method: 'POST',
+        data: JSON.stringify(data),
+        contentType:"application/json; charset=utf-8",
+        dataType: 'json'
+      })
+      .done(function(response) {
+        // console.log(response);
+        var str = "data:"+response["contentType"]+";base64,"+response["song"];
+        var blob = base64ToBlob(str);
+        var obj_url = URL.createObjectURL(blob);
+        $('<a href="'+obj_url+'" download="test.mp3"></a>')[0].click();
+      })
+      .fail(function(err) { console.log(err);})
+      .always(function() {});
+    }
+
+    function base64ToBlob(str) {
+      // extract content type and base64 payload from original string
+      var pos = str.indexOf(';base64,');
+      var type = str.substring(5, pos);
+      var b64 = str.substr(pos + 8);
+
+      // decode base64
+      var content = atob(b64);
+
+      // create an ArrayBuffer and a view (as unsigned 8-bit)
+      var buffer = new ArrayBuffer(content.length);
+      var view = new Uint8Array(buffer);
+
+      // fill the view, using the decoded base64
+      for(var n = 0; n < content.length; n++) {
+        view[n] = content.charCodeAt(n);
+      }
+
+      // convert ArrayBuffer to Blob
+      var blob = new Blob([buffer], { type: type });
+
+      return blob;
+    }
+
     function get_audio_info() {
       // Returns audio info in js object format:
       // {
@@ -239,12 +316,64 @@
       //   base64: "base64 ascii encoded audio data"
       // }
       var src = $('#audio-player').attr('src');
-      if (typeof src === 'undefined') { return -1; }
+      if(src === "") return {"error":"No audio source selected"};
+      if (typeof src === 'undefined') { return {"error":"No audio source selected"}; }
       var base64_split = src.split("base64,");
       return {
         contentType: base64_split[0].split("data:")[1].split(";")[0],
         base64: base64_split[1]
       };
+    }
+
+    function get_image_info() {
+      // Returns image info in js object format:
+      // {
+      //   contentType: "type of image, EX: image/jpg",
+      //   base64: "base64 ascii encoded image data"
+      // }
+
+      var src = $('#preview-image').attr('src');
+      if(src === "") return {"error":"No image source selected"};
+      if (typeof src === 'undefined') { return {"error":"No image source selected"}; }
+      var base64_split = src.split("base64,");
+      return {
+        "contentType": base64_split[0].split("data:")[1].split(";")[0],
+        "base64": base64_split[1]
+      };
+    }
+
+    function get_image_info_from_url() {
+      // Make ajax request to get image data from url
+      if(!$('#image-url').val()) {
+        alert("No URL Given!");
+        return;
+      }
+
+      var img_url = $('#image-url').val();
+      // Format ajax data
+      var data = {
+        "url": img_url
+      }
+
+      $.ajax({
+        url: '/getImageData',
+        method: 'POST',
+        data: JSON.stringify(data),
+        contentType:"application/json; charset=utf-8",
+        dataType: 'json'
+      })
+      .done(function(response) {
+        console.log(response);
+        if(response["error"] != null) {
+          alert(response["error"]);
+        } else {
+          var new_src = "data:"+response["contentType"]+";base64,"+response["base64"];
+          $('#preview-image').attr('src', new_src);
+          $('.preview-image-div').show();
+        }
+      })
+      .fail(function(err) { console.log(err["statusCode"]); stop_load_icon();})
+      .always(function() {});
     }
 
     function get_time_stamps_miliseconds() {
@@ -275,7 +404,7 @@
       };
     }
 
-    function readURL(input) {
+    function preview_image(input) {
       if (input.files && input.files[0]) {
         var reader = new FileReader();
         reader.onload = function(e) {
@@ -300,5 +429,6 @@
       // Stop awesome loader icon
       $('.audio-container').empty();
     }
+
   </script>
 {% endblock %}
