@@ -34,4 +34,5 @@ https://github.com/ChristopherLeeWilliams/OnlineAudioEditor
 
 
 # Future work 
-We would like to improve time efficiency as well as being able to hundreds of uses to use the website simultaneously.
+We would like to improve time efficiency as well as being able to handle hundreds of users on the website simultaneously.
+Finish custom search so that the album cover doesnt download to the client, but it would attatch the album cover automatically. 
