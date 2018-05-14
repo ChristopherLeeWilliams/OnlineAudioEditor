@@ -47,8 +47,8 @@ def crop_audio():
     #return jsonify(something in dictionary format)
     return jsonify(base64_audio)
 
-# Converts supplied audio to supplied format, embeds the supplied
-#   and responsds with base64 ascii data to be downloaded client-side
+# Converts supplied audio to supplied format] and responsds
+#   with base64 ascii data to be downloaded client-side
 @app.route('/downloadAudio', methods=['POST'])
 def downloadAudio():
     json_data = request.json
