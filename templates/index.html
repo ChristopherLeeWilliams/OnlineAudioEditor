@@ -94,7 +94,7 @@
       </div>
       <div id="link-input-div" class="tab-pane fade">
         Image URL: <input id="image-url" type="url" size="20">
-        <button type="button" class="btn btn-info" onclick="get_image_info_from_url()">Preview</button></br></br>
+        <button type="button" class="btn btn-info" onclick="get_image_info_from_url()">Load Image</button></br></br>
       </div>
       <div id="search-input-div" class="tab-pane fade">
         Artist: <input id="artist" type="text" size="10"><br>
@@ -292,14 +292,8 @@
     }
 
     function download_audio_with_album_art() {
-
-      alert("Not Implemented Yet!");
-      return;
-
       var image_info = get_image_info();
       var audio_info = get_audio_info();
-
-
 
       if(audio_info["error"]) {alert(audio_info["error"]); return;}
       if(image_info["error"]) {alert(image_info["error"]); return;}
@@ -312,6 +306,9 @@
         "contentType_image": image_info["contentType"]
       }
 
+      remove_audio_player();
+      start_load_icon();
+
       $.ajax({
         url: '/downloadAudioWithAlbumArt',
         method: 'POST',
@@ -320,13 +317,21 @@
         dataType: 'json'
       })
       .done(function(response) {
+        if(response["error"]) {
+          alert(response["error"]);
+          return;
+        }
+        // console.log(response);
+        // return;
         // console.log(response);
         var str = "data:"+response["contentType"]+";base64,"+response["song"];
+        stop_load_icon();
+        create_audio_player(str);
         var blob = base64ToBlob(str);
         var obj_url = URL.createObjectURL(blob);
         $('<a href="'+obj_url+'" download="test.mp3"></a>')[0].click();
       })
-      .fail(function(err) { console.log(err);})
+      .fail(function(err) { stop_load_icon(); alert("There was an error!");})
       .always(function() {});
     }
 

@@ -4,7 +4,7 @@ from PIL import Image
 from werkzeug.utils import secure_filename
 from pydub import AudioSegment
 from PIL import Image
-import os, io, base64, pydub, urllib, urllib.request
+import os, io, base64, pydub, urllib, urllib.request, tempfile
 
 # SACAD IMPORTS
 __requires__ = 'sacad==2.1.1'
@@ -60,8 +60,6 @@ def downloadAudio():
     format = json_data["download_format"]
     contentType = format_to_contentType(format)
 
-    print(format)
-
     if(contentType == -1):
         return jsonify({"error":"Format not supported!"})
 
@@ -85,23 +83,16 @@ def downloadAudioWithAlbumArt():
     image_data = b64_ascii_to_pillow(json_data["base64_image"])
     if("error" in image_data):
         return jsonify({"error":image_data["error"]})
-    image = image_data["image"].resize((300,300))
 
     song_data = b64_ascii_to_pydub(json_data["base64_audio"], json_data["contentType_audio"])
     if("error" in song_data):
         return jsonify({"error":song_data["error"]})
 
-    song = song_data["song"]
-    # ADD ALBUM ART TO SONG HERE
-    # Need to create temporary file with image data to use Pydub's album cover feature
-
-
-    # After created, add the location as the third parameter here:
-    b64_audio_info = pydub_to_b64_ascii(song,"mp3")
-
-    # Delete the image off the server
-
-    return jsonify({"song":b64_audio_info["song"],"contentType":json_data["contentType_audio"]})
+    try:
+        b64_audio_info = add_album_art_to_pydub(song_data["song"],image_data["image"])
+        return jsonify({"song":b64_audio_info["song"],"contentType":json_data["contentType_audio"]})
+    except:
+        return jsonify({"error":"Incorrect audio or image format"})
 
     # return jsonify({"msg":"Added Album Art!"})
 
@@ -114,8 +105,8 @@ def get_image_data():
         return jsonify({"error":"Invalid Url"})
 
     # img here is editable in pillow
-    resized = img.resize((300,300))
-    img_b64 = pillow_image_to_b64_ascii(resized)
+    # resized = img.resize((300,300))
+    img_b64 = pillow_image_to_b64_ascii(img)
     return jsonify(img_b64)
 
 @app.route('/splice', methods=['POST'])
@@ -174,6 +165,28 @@ def upload_file():
 
 
 # ------------------------------------- FUNCTIONS --------------------------------------
+def add_album_art_to_pydub(pydub_song, pillow_image):
+    # create a named temporary file with suffix ".jpg" and manual deletion enables
+    tf = tempfile.NamedTemporaryFile(suffix=".jpg",delete=False)
+    # change permissions of file to be read/write/executable
+    os.chmod(tf.name, 0o777)
+    # resize and convert pillow image to correct format
+    image = pillow_image.convert('RGB').resize((600,600))
+    # Open the temp file to write image data
+    with open(tf.name,'wb+') as jpg:
+        # Read bytes from byte-like object and write them to temp file
+        buffered = io.BytesIO()
+        image.save(buffered, format="JPEG")
+        jpg.write(buffered.getvalue())
+
+    # Save new song as mp3 with the cover linking to our tempfile (image)
+    b64_audio_info = pydub_to_b64_ascii(pydub_song,"mp3",tf.name)
+    # Close tempfile and delete it from system
+    tf.file.close()
+    os.unlink(tf.name)
+    # Return song data
+    return b64_audio_info
+
 def b64_ascii_to_pydub(b64Song=-1, contentType=-1):
     # Converts client supplied b64 ascii audio data with
     #   specified contentType to pydub formatted song
@@ -212,7 +225,7 @@ def b64_ascii_to_pillow(b64Image=-1):
 
         return {"image":img}
     except:
-        return -1
+        return {"error":"Image formatted incorrectly"}
 
 def contentType_to_format(cT):
     # Translates contentType supplied from
