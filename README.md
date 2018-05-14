@@ -1,9 +1,6 @@
-# OnlineAudioEditor
-Final Project for CST 205. An online audio editor that uses Python and Flask. Allows user to manipulate an uploaded audio file.
-
-
 # Name of project: 
-Online Adudo Editor
+Online Adudo Editor. Final Project for CST 205. An online audio editor that uses Python and Flask. Allows user to manipulate an uploaded audio file.
+
 
 
 # Names of team members:
