@@ -70,7 +70,15 @@
         </div>
 
         <div id="yt-link-input-div" class="tab-pane fade">
-            Youtube Download Stuff Goes Here
+            <!-- <form action="/ytdl"> -->
+          Youtube URL:<br>
+          <input type="text" id ="yt_url" placeholder="https://">
+          <br>
+          New filename:<br>
+          <input type="text" id ="filename" placeholder="">
+          <br><br>
+          <input type="button" value="Download" onclick="youtube_dl()">
+        <!-- </form> -->
         </div>
 
       </div>
@@ -108,7 +116,8 @@
     </div>
   </br><button type="button" class="btn btn-info" onclick="download_audio_with_album_art()">Download As MP3 With Album Art</button>
   </div>
-</div>
+</div></br>
+
 
 {% endblock %}
 
@@ -250,6 +259,35 @@
       .always(function() {});
     }
 
+    function youtube_dl() {
+      url = "/ytdl";
+
+      var yturl = $('#yt_url').val();
+      var name = $('#filename').val();
+      // Format ajax data
+      var data = {
+        "yt_url": yturl,
+        "filename": name,
+
+      }
+
+      // Remove player and start load icon
+      remove_audio_player();
+      start_load_icon();
+
+      $.ajax({
+        url: url,
+        method: 'POST',
+        data: JSON.stringify(data),
+        contentType:"application/json; charset=utf-8",
+        dataType: 'json'
+      })
+      .done(function(response) {
+        console.log(response);
+      })
+      .fail(function(err) {alert("Error")})
+      .always(function() {});
+    }
     // Sends audio data and export format to the
     //  server and downloads the response base64
     //  data via Blob file
