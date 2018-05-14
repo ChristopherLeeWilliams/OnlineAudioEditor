@@ -12,16 +12,8 @@ import subprocess
 
 app= Flask(__name__, static_url_path = "/static", static_folder = "static")
 bootstrap = Bootstrap(app)
-# --------------------------------------- ROUTES ---------------------------------------
 
-# Notes on crop and splice timestamps
-#   Some error checking has been done on client via javascript to help insure:
-#   - The startTime passed will never be less than 0
-#   - The endTime passed will at max be the song duration
-#   - startTime will always be less than endTime
-#
-#   It may be worth setting up some error catching later for good measure though.
-#   (Client side scripts can be modified by determined users)
+# --------------------------------------- ROUTES ---------------------------------------
 
 @app.route('/youtubeDL', methods=['POST','Get'])
 def yt_dl():
@@ -42,6 +34,7 @@ def yt_dl():
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
         info_dict = ydl.extract_info(self.urledit.text(), download=True)
 
+# Crops supplied audio based on supplied timestamps
 @app.route('/crop', methods=['POST','GET'])
 def crop_audio():
     json_data = request.json
@@ -54,6 +47,8 @@ def crop_audio():
     #return jsonify(something in dictionary format)
     return jsonify(base64_audio)
 
+# Converts supplied audio to supplied format, embeds the supplied
+#   and responsds with base64 ascii data to be downloaded client-side
 @app.route('/downloadAudio', methods=['POST'])
 def downloadAudio():
     json_data = request.json
@@ -75,6 +70,9 @@ def downloadAudio():
 
     # return jsonify({"msg":"Added Album Art!"})
 
+# Converts supplied audio to mp3, embeds the supplied
+#   image data as album art, and responsds with base64 ascii
+#   data to be downloaded client-side
 @app.route('/downloadAudioWithAlbumArt', methods=['POST'])
 def downloadAudioWithAlbumArt():
     json_data = request.json
@@ -96,6 +94,8 @@ def downloadAudioWithAlbumArt():
 
     # return jsonify({"msg":"Added Album Art!"})
 
+# Gets the image data from a supplied URL
+#   and returns it in base64 ascii
 @app.route('/getImageData', methods=['POST'])
 def get_image_data():
     # Given an image URL, downloads the b64 image data
@@ -109,6 +109,7 @@ def get_image_data():
     img_b64 = pillow_image_to_b64_ascii(img)
     return jsonify(img_b64)
 
+# Splices supplied audio based on supplied timestamps
 @app.route('/splice', methods=['POST'])
 def splice_audio():
     json_data = request.json
@@ -122,6 +123,7 @@ def splice_audio():
     base64_audio = pydub_to_b64_ascii(spliced, pydub_data["format"])
     return jsonify(base64_audio)
 
+# Returns list of supported audio formats
 @app.route('/supportedFormats', methods=['GET'])
 def get_supported_formats():
     return jsonify(["mp3","flac","wav","ogg"]);
@@ -157,6 +159,7 @@ def getArt():
     downloadArtCover(artist,album)
     return "Downloaded"
 
+# Base index page render
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
     return render_template('index.html')
@@ -165,6 +168,10 @@ def upload_file():
 
 
 # ------------------------------------- FUNCTIONS --------------------------------------
+
+# Adds pillow image as album art to pydub song
+#   creates a jpg tempfile with an addressable name
+#   to meet pydub requirement (cant pass in file-like object)
 def add_album_art_to_pydub(pydub_song, pillow_image):
     # create a named temporary file with suffix ".jpg" and manual deletion enables
     tf = tempfile.NamedTemporaryFile(suffix=".jpg",delete=False)
@@ -187,10 +194,9 @@ def add_album_art_to_pydub(pydub_song, pillow_image):
     # Return song data
     return b64_audio_info
 
+# Converts client supplied b64 ascii audio data with
+#   specified contentType to pydub formatted song
 def b64_ascii_to_pydub(b64Song=-1, contentType=-1):
-    # Converts client supplied b64 ascii audio data with
-    #   specified contentType to pydub formatted song
-
     if((b64Song==-1) or (contentType==-1)):
         return {"error":"Missing audio data from upload"}
 
@@ -212,8 +218,8 @@ def b64_ascii_to_pydub(b64Song=-1, contentType=-1):
         "song":song
     }
 
+# Converts client supplied b64 ascii image data with to pillow Image
 def b64_ascii_to_pillow(b64Image=-1):
-    # Converts client supplied b64 ascii image data with to pillow Image
     try:
         if(b64Image == -1):
             return {"error":"Missing image data from upload"}
@@ -227,9 +233,9 @@ def b64_ascii_to_pillow(b64Image=-1):
     except:
         return {"error":"Image formatted incorrectly"}
 
+# Translates contentType supplied from
+#  client to audio format used in pydub
 def contentType_to_format(cT):
-    # Translates contentType supplied from
-    #  client to audio format used in pydub
     return {
         'audio/mp3': "mp3",
         'audio/mpeg': "mp3",
@@ -243,6 +249,8 @@ def downloadArtCover(artist, album):
     file_path = "./cover.jpg"
     subprocess.call([r"./sacad.exe", str(artist), str(album), str(file_size), str(file_path)])
 
+# Translates format used in pydub
+#   to contentType to be used by client
 def format_to_contentType(f):
     return {
         'mp3': "audio/mp3",
@@ -252,6 +260,8 @@ def format_to_contentType(f):
         'ogg' : "audio/ogg"
     }.get(f, -1)   # If type not found, default on mp3
 
+# Extracts image data from url and formats as
+#   pillow image
 def image_url_to_pillow(url):
     try:
         url_response = urllib.request.urlopen(url).read()
@@ -260,6 +270,7 @@ def image_url_to_pillow(url):
     except:
         return -1
 
+# Converts pillow formated image into base64 ascii jpg image
 def pillow_image_to_b64_ascii(byte_data):
     # Force converts to jpeg for simplicity
     buffered = io.BytesIO()
@@ -271,13 +282,10 @@ def pillow_image_to_b64_ascii(byte_data):
         "base64" : img_str
     }
 
+# Converts pydub formatted audio to b64 ascii format
+#   for playing on client side audio player
+# AUDIO CONVERSION CAN HAPPEN HERE (exportFormat)
 def pydub_to_b64_ascii(pydubSong, exportFormat, image=-1):
-    # Converts pydub formatted audio to b64 ascii format
-    #   for playing on client side audio player
-    # AUDIO CONVERSION CAN HAPPEN HERE (exportFormat)
-
-    # May want to set up error catching here (pydub specific)
-
     # Export modified audio file to a bytes object (through a bytestream)
     f = io.BytesIO()
     if(image == -1):
@@ -293,7 +301,5 @@ def pydub_to_b64_ascii(pydubSong, exportFormat, image=-1):
         "song": base64.b64encode(song).decode('ascii'),
         "contentType": format_to_contentType(exportFormat)
     }
-
-
 
 # ----------------------------------- END FUNCTIONS ------------------------------------
