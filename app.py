@@ -28,8 +28,10 @@ import subprocess
 
 @app.route('/ytdl', methods=['POST','GET'])
 def yt_dl():
+    print("got here yd_dl")
     json_data = request.json
-    outtmpl = newname + '.%(ext)s'
+    outtmpl = json_data["filename"] + '.%(ext)s'
+    print("output file name" + json_data["filename"] + '.%(ext)s')
     ydl_opts = {
         'format': 'bestaudio/best',
         'outtmpl': outtmpl,
@@ -43,8 +45,8 @@ def yt_dl():
 
     }
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-        info_dict = ydl.extract_info(self.urledit.text(), download=True)
-
+        info_dict = ydl.extract_info(json_data["yt_url"], download=True)
+    print("got past the download" + json_data["yt_url"])
 
 @app.route('/crop', methods=['POST','GET'])
 def crop_audio():
