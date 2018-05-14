@@ -21,11 +21,11 @@ March 14th, 2018
 To run locally, ffmpeg will need to be downloaded and included in the path. 
 install (pip install) all modules in requirements.txt
 Run these 3 Flask commands. 
-'''
+```
 $env:FLASK_APP="app.py"
 $env:FLASK_DEBUG=1
 flask run
-'''
+```
 To use the webite, go to heroku link: https://online-audio-editor.herokuapp.com
 
 
