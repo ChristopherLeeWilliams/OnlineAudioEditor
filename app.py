@@ -60,7 +60,6 @@ def crop_audio():
     #return jsonify(something in dictionary format)
     return jsonify(base64_audio)
 
-<<<<<<< HEAD
 # Converts supplied audio to supplied format] and responsds
 #   with base64 ascii data to be downloaded client-side
 @app.route('/downloadAudio', methods=['POST'])
@@ -124,8 +123,6 @@ def get_image_data():
     return jsonify(img_b64)
 
 # Splices supplied audio based on supplied timestamps
-=======
->>>>>>> c402b147b2a87eb696b03736e63b873cebafde92
 @app.route('/splice', methods=['POST'])
 def splice_audio():
     json_data = request.json
