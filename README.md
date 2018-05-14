@@ -4,9 +4,9 @@ Online Adudo Editor. Final Project for CST 205. An online audio editor that uses
 
 
 # Names of team members
-Adrian Trujillo
-Christopher Williams
-Erick Wright-Miller
+Adrian Trujillo. 
+Christopher Williams. 
+Erick Wright-Miller. 
 
 
 # Class
@@ -18,8 +18,8 @@ March 14th, 2018
 
 
 # How to run program
-ffmpeg will need to be downloaded and included in the path.
-Heroku lik: https://online-audio-editor.herokuapp.com
+To run locally, ffmpeg will need to be downloaded and included in the path.
+Heroku link: https://online-audio-editor.herokuapp.com
 
 
 # Link to GitHub repository 
