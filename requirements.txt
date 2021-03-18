@@ -28,7 +28,7 @@ mutagen==1.40.0
 nose==1.3.7
 numpy==1.14.2
 pathlib==1.0.1
-Pillow==5.1.0
+Pillow==8.1.1
 pycparser==2.18
 pydub==0.21.0
 pyOpenSSL==17.5.0
