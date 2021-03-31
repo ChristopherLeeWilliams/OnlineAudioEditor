@@ -21,7 +21,7 @@ idna==2.6
 idna-ssl==1.0.1
 itsdangerous==0.24
 Jinja2==2.10
-lxml==4.2.1
+lxml==4.6.3
 MarkupSafe==1.0
 multidict==4.3.1
 mutagen==1.40.0
